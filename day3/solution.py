@@ -52,8 +52,8 @@ def overlap(a: Area, b: Area):
     return a.positions & b.positions
    
 def parse(_inp):
-    numbers = defaultdict(list)
-    symbols = defaultdict(list)
+    numbers_by_row = defaultdict(list)
+    symbols_by_row = defaultdict(list)
     for row, line in enumerate(_inp):
         line = line + "\n" # for simpler logic
         buf = ""
@@ -63,19 +63,19 @@ def parse(_inp):
             else:
                 if len(buf)>0:
                     n = Number(int(buf), Area(Pos.make(row, col-len(buf)), Pos.make(row, col-1)))
-                    numbers[row].append(n)
+                    numbers_by_row[row].append(n)
                     buf = ""
                 if ch not in [".", "\n"]:
                     s = Symbol(ch, Pos.make(row, col))
-                    symbols[row].append(s)
-    return numbers, symbols
+                    symbols_by_row[row].append(s)
+    return numbers_by_row, symbols_by_row
 
 
 def part1(_inp):
-    numbers, symbols = parse(_inp)
+    numbers_by_row, symbols_by_row = parse(_inp)
     part_numbers = set()
-    for row, num_list in numbers.items():
-        close_symbols = symbols[row-1] + symbols[row] + symbols[row+1]
+    for row, num_list in numbers_by_row.items():
+        close_symbols = symbols_by_row[row-1] + symbols_by_row[row] + symbols_by_row[row+1]
         for num in num_list:
             for sym in close_symbols:
                 if len(overlap(num.area, sym.neighbourhood)) > 0:
@@ -92,10 +92,10 @@ print(part1(real_input))
 
 
 def part2(_inp):
-    numbers, symbols = parse(_inp)
+    numbers_by_row, symbols_by_row = parse(_inp)
     result = 0 
-    for row, symbol_list in symbols.items():
-        close_numbers = numbers[row-1] + numbers[row] + numbers[row+1]
+    for row, symbol_list in symbols_by_row.items():
+        close_numbers = numbers_by_row[row-1] + numbers_by_row[row] + numbers_by_row[row+1]
         for sym in symbol_list:
             if sym.value == "*":
                 adjacent = []
