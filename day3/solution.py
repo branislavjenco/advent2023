@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from collections import defaultdict
 from utils import file_into_list, file_into_string, test
 
 @dataclass(frozen=True)
@@ -51,8 +52,8 @@ def overlap(a: Area, b: Area):
     return a.positions & b.positions
    
 def parse(_inp):
-    numbers = []
-    symbols = []
+    numbers = defaultdict(list)
+    symbols = defaultdict(list)
     for row, line in enumerate(_inp):
         line = line + "\n" # for simpler logic
         buf = ""
@@ -62,21 +63,23 @@ def parse(_inp):
             else:
                 if len(buf)>0:
                     n = Number(int(buf), Area(Pos.make(row, col-len(buf)), Pos.make(row, col-1)))
-                    numbers.append(n)
+                    numbers[row].append(n)
                     buf = ""
                 if ch not in [".", "\n"]:
                     s = Symbol(ch, Pos.make(row, col))
-                    symbols.append(s)
+                    symbols[row].append(s)
     return numbers, symbols
 
 
 def part1(_inp):
     numbers, symbols = parse(_inp)
     part_numbers = set()
-    for num in numbers:
-        for sym in symbols:
-            if len(overlap(num.area, sym.neighbourhood)) > 0:
-                part_numbers.add(num)
+    for row, num_list in numbers.items():
+        close_symbols = symbols[row-1] + symbols[row] + symbols[row+1]
+        for num in num_list:
+            for sym in close_symbols:
+                if len(overlap(num.area, sym.neighbourhood)) > 0:
+                    part_numbers.add(num)
     return sum([num.value for num in part_numbers])
 
 
@@ -91,14 +94,16 @@ print(part1(real_input))
 def part2(_inp):
     numbers, symbols = parse(_inp)
     result = 0 
-    for sym in symbols:
-        if sym.value == "*":
-            adjacent = []
-            for num in numbers:
-                if len(overlap(num.area, sym.neighbourhood)) > 0:
-                    adjacent.append(num)
-            if len(adjacent) == 2:
-                result = result + (adjacent[0].value * adjacent[1].value)
+    for row, symbol_list in symbols.items():
+        close_numbers = numbers[row-1] + numbers[row] + numbers[row+1]
+        for sym in symbol_list:
+            if sym.value == "*":
+                adjacent = []
+                for num in close_numbers:
+                    if len(overlap(num.area, sym.neighbourhood)) > 0:
+                        adjacent.append(num)
+                if len(adjacent) == 2:
+                    result = result + (adjacent[0].value * adjacent[1].value)
     return result
 
 
