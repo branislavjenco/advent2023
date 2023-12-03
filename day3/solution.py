@@ -6,6 +6,11 @@ from utils import file_into_list, file_into_string, test
 class Pos:
     row: int
     col: int
+
+    @property
+    def neighbourhood(self):
+        # 1-distance neighbourhood of this position
+        return Area(Pos.make(self.row-1, self.col-1), Pos.make(self.row+1, self.col+1))
     
     @classmethod
     def make(cls, row, col):
@@ -23,12 +28,13 @@ class Area:
     end: Pos
 
     @property
-    def positions(self):
-        positions = set()
+    def spread(self):
+        # set of all spread that make up this area
+        spread = set()
         for i in range(self.start.row, self.end.row + 1):
             for j in range(self.start.col, self.end.col + 1):
-                positions.add(Pos.make(i, j))
-        return positions
+                spread.add(Pos.make(i, j))
+        return spread
 
 
 
@@ -45,11 +51,12 @@ class Symbol:
 
     @property
     def neighbourhood(self):
-        return Area(Pos.make(self.pos.row-1, self.pos.col-1), Pos.make(self.pos.row+1, self.pos.col+1))
+        return self.pos.neighbourhood
+
 
 
 def overlap(a: Area, b: Area):
-    return a.positions & b.positions
+    return a.spread & b.spread
    
 def parse(_inp):
     numbers_by_row = defaultdict(list)
@@ -75,6 +82,7 @@ def part1(_inp):
     numbers_by_row, symbols_by_row = parse(_inp)
     part_numbers = set()
     for row, num_list in numbers_by_row.items():
+        # optimization, we only look at symbols in the row where the number is, and one above, and one below
         close_symbols = symbols_by_row[row-1] + symbols_by_row[row] + symbols_by_row[row+1]
         for num in num_list:
             for sym in close_symbols:
@@ -95,6 +103,7 @@ def part2(_inp):
     numbers_by_row, symbols_by_row = parse(_inp)
     result = 0 
     for row, symbol_list in symbols_by_row.items():
+        # optimization, we only look at numbers in the row where the symbol is, and one above, and one below
         close_numbers = numbers_by_row[row-1] + numbers_by_row[row] + numbers_by_row[row+1]
         for sym in symbol_list:
             if sym.value == "*":
