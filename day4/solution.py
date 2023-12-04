@@ -9,12 +9,14 @@ class Card:
     winning: set
     have: set
 
+    def matches(self):
+        return self.winning & self.have
+
     def points(self):
-        intersection = self.winning & self.have
-        if len(intersection) == 0:
+        if len(self.matches()) == 0:
             return 0
         else:
-            return 2**(len(intersection)-1)
+            return 2**(len(self.matches())-1)
 
     @classmethod
     def from_string(cls, string):
@@ -52,14 +54,21 @@ real_input = file_into_list("day4/input.txt")
 print(part1(real_input))
 
 
-
 def part2(_inp):
-    pass
+    result = 0
+    copies = defaultdict(lambda: 1)
+    for line in _inp:
+        card = Card.from_string(line)
+        for i in range(copies[card.id]):
+            for j in range(card.id+1, card.id + len(card.matches()) + 1):
+                copies[j] = copies[j] + 1
+        result = result + copies[card.id]
+    return result
 
 
-#test_input = file_into_list("day4/test_input2.txt")
-#expected = int(file_into_string("day4/test_output2.txt"))
-#test(part2, [test_input], [expected])
-#
-#real_input = file_into_list("day4/input.txt")
-#print(part2(real_input))
+test_input = file_into_list("day4/test_input2.txt")
+expected = int(file_into_string("day4/test_output2.txt"))
+test(part2, [test_input], [expected])
+
+real_input = file_into_list("day4/input.txt")
+print(part2(real_input))
