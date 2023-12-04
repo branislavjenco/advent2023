@@ -34,17 +34,12 @@ class Card:
         return cls(id, winning, have)
             
 
-
-
 def part1(_inp):
     result = 0
     for line in _inp:
         card = Card.from_string(line)
         result = result + card.points()
     return result
-        
-
-
 
 
 test_input = file_into_list("day4/test_input1.txt")
