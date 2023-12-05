@@ -1,7 +1,4 @@
 import sys
-import numpy as np
-
-np.set_printoptions(threshold=sys.maxsize)
 
 
 def file_into_list(filename, map_f=lambda x: x):
