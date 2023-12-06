@@ -5,20 +5,21 @@ from utils import file_into_list, file_into_string, test
 @dataclass
 class Mapping:
     src: range
-    dst: range
+    diff: int
     
     @classmethod
     def from_str(cls, string):
         src_start, dst_start, length = [int(s) for s in string.split()]
         src = range(src_start, src_start + length)
-        dst = range(dst_start, dst_start + length)
-        return cls(src, dst)
+        diff = (dst_start - src_start)
+        return cls(src, diff)
 
     def index(self, inp):
-        if inp in src:
-            return dst[inp]
+        print(inp, self.src, self.diff)
+        if inp in self.src:
+            return inp + self.diff
         else:
-            return inp
+            return None
 
 @dataclass
 class Map:
@@ -33,9 +34,16 @@ class Map:
 
         return cls(mappings)
 
-
-def find_next(num, table):
-    pass
+    def index(self, _inp):
+        result = None
+        for m in self.mappings:
+            res = m.index(_inp)
+            if res:
+                result = res
+                break
+        if not result:
+            result = _inp
+        return result
 
 def parse(_inp):
     almanac = _inp.split("\n\n")
@@ -47,8 +55,6 @@ def parse(_inp):
         maps.append(Map.from_str(map_str))
 
     return seeds, maps
-
-        
     
 
 def part1(_inp):
@@ -57,6 +63,11 @@ def part1(_inp):
     for seed in seeds:
         curr = seed
         for m in maps:
+            print(curr)
+            curr = m.index(curr)
+        results.append(curr)
+    print(results)
+    return min(results)
 
 
 
