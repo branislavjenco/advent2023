@@ -6,8 +6,11 @@ from utils import file_into_list, file_into_string, test
 def parse(_inp):
     almanac = _inp.split("\n\n")
     seeds = almanac[0].split(":")[1].strip().split()
+    print(seeds)
     for _map in almanac[1:]:
         table = _map.split(":")[1]
+        for line in table.split("\n"):
+            pass 
         print(table)
     
 
