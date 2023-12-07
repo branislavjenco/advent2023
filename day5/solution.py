@@ -13,20 +13,24 @@ class Mapping:
         dst_start, src_start, length = [int(s) for s in string.split()]
         src = range(src_start, src_start + length)
         diff = (dst_start - src_start)
+        print("diff", dst_start, src_start, diff)
         return cls(src, diff)
 
     def index(self, inp):
         if inp in self.src:
             return inp + self.diff
         else:
-            return None
+            return inp
 
     def index_range(self, r):
         print(self.src, r)
         overlap = range(max(self.src[0], r[0]), min(self.src[-1], r[-1])+1)
-        print(overlap, len(overlap))
+        print(overlap, len(overlap), self.diff)
+        # the problem is that the values outside the overlap still need to be mapped (1 to 1 that is)
         if len(overlap) > 0:
-            return range(overlap[0] + self.diff, overlap[-1] + self.diff) # I feel like there should be +1 here
+            mapped_overlap = range(overlap[0] + self.diff, overlap[-1] + self.diff + 1) # I feel like there should be +1 here
+            print("M", mapped_overlap)
+            return mapped_overlap
         else:
             return None
 
@@ -44,15 +48,11 @@ class Map:
         return cls(mappings)
 
     def index(self, _inp):
-        result = None
+        res = _inp
         for m in self.mappings:
-            res = m.index(_inp)
-            if res:
-                result = res
-                break
-        if not result:
-            result = _inp
-        return result
+            res = m.index(res)
+            print(res)
+        return res
 
     def index_range(self, r):
         result = None
@@ -63,6 +63,8 @@ class Map:
                 break
         if not result:
             result = r
+            print("M", r)
+
         return result
 
 
@@ -84,9 +86,12 @@ def part1(_inp):
     min_result = sys.maxsize
     seeds, maps = parse(_inp, parse_seeds_1) 
     for seed in seeds:
+        print("seed", seed)
         curr = seed
         for m in maps:
+            print("m", m)
             curr = m.index(curr)
+        print("End", curr)
         if curr < min_result:
             min_result = curr
     return min_result
@@ -113,15 +118,17 @@ def parse_seeds_2(almanac):
 def part2(_inp):
     min_result = sys.maxsize
     seed_ranges, maps = parse(_inp, parse_seeds_2) 
-    print("parsed")
+    #print("parsed")
     for i, seed_range in enumerate(seed_ranges):
-        print(f"{i}/{len(seed_ranges)}")
+        #print(f"{i}/{len(seed_ranges)}")
         curr = seed_range
         for m in maps:
             curr = m.index_range(curr)
+        print("FOO", curr)
         min_curr = min(curr)
         if min_curr < min_result:
             min_result = min_curr
+
     return min_result
 
 
