@@ -4,64 +4,87 @@ import functools
 from utils import file_into_list, file_into_string, test
 
 
-card_types = "AKQJT98765432"
-hand_lut = {
-        "five": "5000000000000",
-        "four": "4100000000000",
-        "full": "3200000000000",
-        "three": "3110000000000",
-        "twop": "2210000000000",
-        "pair": "2111000000000",
-        "high": "1111100000000"
-    }   
+hand_order = [
+        "1111100000000",
+        "2111000000000",
+        "2210000000000",
+        "3110000000000",
+        "3200000000000",
+        "4100000000000",
+        "5000000000000"
+    ]
 
-hand_lut2 = {v: k for k,v in hand_lut.items()}
-ordering = list(reversed(hand_lut.keys()))
-print(ordering)
-
-
-@dataclass
 @functools.total_ordering
 class Hand:
-    cards: str
-    bid: int
+
+    card_types = "23456789TJQKA"
+
+    def __init__(self, cards, bid):
+        self.cards = cards
+        self.bid = bid
 
     @classmethod
     def from_str(cls, string):
         cards, bid = string.split()
-        return cls(cards, bid)
+        return cls(cards, int(bid))
 
-    @property
     def label(self):
-        counts = { k: 0 for k in card_types } 
+        counts = { k: 0 for k in self.card_types } 
         for c in self.cards:
             counts[c] = counts[c] + 1
         values = "".join([str(v) for v in sorted(counts.values(), reverse=True)])
-        return hand_lut2[values]
+        return values
 
     def __eq__(self, other):
-        return self.label == other.label
+        return self.label() == other.label()
 
     def __lt__(self, other):
-        if ordering.index(self.label) == ordering.index(other.label):
-
+        if hand_order.index(self.label()) == hand_order.index(other.label()):
+            for i in range(len(self.cards)):
+                if self.card_types.index(self.cards[i]) < self.card_types.index(other.cards[i]):
+                    return True
+                elif self.card_types.index(self.cards[i]) > self.card_types.index(other.cards[i]):
+                    return False
+                else:
+                    continue
         else:
-            return ordering.index(self.label) == ordering.index(other.label)
+            return hand_order.index(self.label()) < hand_order.index(other.label())
 
 
+class HandWithJoker(Hand):
+    card_types = "J23456789TQKA" # J is now the weakest
+    def label(self):
+        counts = { k: 0 for k in self.card_types } 
+        jokers = 0
+        for c in self.cards:
+            if c == "J":
+                jokers = jokers + 1
+            else:
+                counts[c] = counts[c] + 1
+        values = [str(v) for v in sorted(counts.values(), reverse=True)]
+        if jokers > 0:
+            for i in range(len(self.card_types)):
+                while int(values[i]) < 6 and jokers > 0:
+                    values[i] = str(int(values[i]) + 1)
+                    jokers = jokers - 1
+                if jokers == 0:
+                    break
+        return "".join(values)
 
-def parse(_inp):
+
+def parse(_inp, hand_class):
     hands = []
     for line in _inp:
-        hands.append(Hand.from_str(line))
+        hands.append(hand_class.from_str(line))
     return hands
 
 
 def part1(_inp):
-    hands = sorted(parse(_inp))
-    for h in hands:
-        print(h)
-        
+    hands = sorted(parse(_inp, Hand))
+    result = 0
+    for i, h in enumerate(hands):
+        result = result + h.bid * (i+1)
+    return result
 
 
 test_input = file_into_list("day7/test_input1.txt")
@@ -72,10 +95,14 @@ print(part1(real_input))
 
 
 def part2(_inp):
-    pass
+    hands = sorted(parse(_inp, HandWithJoker))
+    result = 0
+    for i, h in enumerate(hands):
+        result = result + h.bid * (i+1)
+    return result
 
-#test_input = file_into_list("day7/test_input2.txt")
-#expected = int(file_into_string("day7/test_output2.txt"))
-#test(part2, [test_input], [expected])
-#real_input = file_into_list("day7/input.txt")
-#print(part2(real_input))
+test_input = file_into_list("day7/test_input2.txt")
+expected = int(file_into_string("day7/test_output2.txt"))
+test(part2, [test_input], [expected])
+real_input = file_into_list("day7/input.txt")
+print(part2(real_input))
